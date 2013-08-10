@@ -2,6 +2,7 @@ class UsersController < ApplicationController
   before_filter :authenticate, :only => [:index, :edit, :update]
   before_filter :correct_user, :only => [:edit, :update]
   before_filter :admin_user, :only => :destroy
+  before_filter :prevent_redundant_sign_up_access, :only => [:new, :create]
 
   def index
     @title = "All users"
@@ -45,8 +46,11 @@ class UsersController < ApplicationController
   end
 
   def destroy
-    User.find(params[:id]).destroy
-    flash[:success] = "User destroyed"
+    user = User.find(params[:id])
+    return redirect_to(users_path, 
+        :notice => "Invalid opertaion. Admin user cannot delete himself.") if user == current_user
+    user.destroy
+    flash[:success] = 'User destroyed'
     redirect_to users_path
   end
 
@@ -63,5 +67,9 @@ class UsersController < ApplicationController
     def admin_user
       return redirect_to(signin_path) unless signed_in?
       redirect_to(root_path) unless current_user.admin?
+    end
+
+    def prevent_redundant_sign_up_access
+      redirect_to(root_path, :notice => "Signed-in user doesn't need to sign up") if signed_in?
     end
 end
