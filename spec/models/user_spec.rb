@@ -249,6 +249,11 @@ describe User do
   end
 
   describe "micropost associations" do
+    before(:each) do
+      @user = User.create(@attr)
+      @mp1 = FactoryGirl.create(:micropost, :user => @user, :created_at => 1.day.ago)
+      @mp2 = FactoryGirl.create(:micropost, :user => @user, :created_at => 1.hour.ago)
+    end
     describe "status feed" do
       it "should have a feed" do
         @user.should respond_to(:feed)
@@ -265,7 +270,7 @@ describe User do
         @user.feed.should_not include(mp3)
       end
 
-      it "should not include the microposts of followed users" do
+      it "should include the microposts of followed users" do
         followed = FactoryGirl.create(:user, :email => FactoryGirl.generate(:email))
         mp3 = FactoryGirl.create(:micropost, :user => followed)
         @user.follow!(followed)
